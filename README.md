@@ -17,13 +17,19 @@ FastAPI MVP that accepts natural language questions, introspects a live PostgreS
 ## Run
 
 ```powershell
-& "C:\Users\Sreehari\tecdots-assessment\.venv\Scripts\python.exe" -m uvicorn main:app --reload
+& "C:\Users\Sreehari\tecdots-assessment\.venv\Scripts\python.exe" -m uvicorn main:app --host 127.0.0.1 --port 8010 --reload
+```
+
+Open the demo UI:
+
+```text
+http://localhost:8010/
 ```
 
 Open Swagger UI:
 
 ```text
-http://127.0.0.1:8000/docs
+http://localhost:8010/docs
 ```
 
 ## Endpoints

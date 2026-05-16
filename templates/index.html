@@ -15,7 +15,7 @@
 
       <section class="panel">
         <label for="question">Question</label>
-        <textarea id="question" rows="4" placeholder="Example: How many books are there?"></textarea>
+        <textarea id="question" rows="4" placeholder="Example: Show a summary of the available records"></textarea>
         <div class="actions">
           <button id="submit" type="button">Run Query</button>
           <span id="loading" class="loading" hidden>Generating SQL and querying database...</span>
@@ -150,7 +150,7 @@
       });
 
       if (window.location.protocol === "file:") {
-        showError("Open this UI through the FastAPI server, for example http://127.0.0.1:8010/. Direct file access cannot call /query.");
+        showError("Open this UI through the FastAPI server, for example http://localhost:8010/. Direct file access cannot call /query.");
       }
     </script>
   </body>

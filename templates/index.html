@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Natural Language SQL Query</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="header">
+        <h1>Natural Language SQL Query</h1>
+        <p>Ask a question against the live PostgreSQL database.</p>
+      </header>
+
+      <section class="panel">
+        <label for="question">Question</label>
+        <textarea id="question" rows="4" placeholder="Example: How many books are there?"></textarea>
+        <div class="actions">
+          <button id="submit" type="button">Run Query</button>
+          <span id="loading" class="loading" hidden>Generating SQL and querying database...</span>
+        </div>
+        <p id="error" class="error" hidden></p>
+      </section>
+
+      <section id="sql-section" class="panel" hidden>
+        <div class="section-heading">
+          <h2>Generated SQL</h2>
+          <span id="row-count"></span>
+        </div>
+        <pre id="sql"></pre>
+      </section>
+
+      <section id="results-section" class="panel" hidden>
+        <h2>Results</h2>
+        <div id="results"></div>
+      </section>
+    </main>
+
+    <script>
+      const questionInput = document.getElementById("question");
+      const submitButton = document.getElementById("submit");
+      const loading = document.getElementById("loading");
+      const errorBox = document.getElementById("error");
+      const sqlSection = document.getElementById("sql-section");
+      const sqlBox = document.getElementById("sql");
+      const rowCount = document.getElementById("row-count");
+      const resultsSection = document.getElementById("results-section");
+      const resultsBox = document.getElementById("results");
+
+      function setLoading(isLoading) {
+        submitButton.disabled = isLoading;
+        loading.hidden = !isLoading;
+      }
+
+      function showError(message) {
+        errorBox.textContent = message;
+        errorBox.hidden = false;
+      }
+
+      function clearOutput() {
+        errorBox.hidden = true;
+        errorBox.textContent = "";
+        sqlSection.hidden = true;
+        resultsSection.hidden = true;
+        sqlBox.textContent = "";
+        rowCount.textContent = "";
+        resultsBox.innerHTML = "";
+      }
+
+      function renderTable(rows) {
+        if (!rows.length) {
+          resultsBox.innerHTML = "<p class=\"empty\">No rows returned.</p>";
+          return;
+        }
+
+        const columns = Object.keys(rows[0]);
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+
+        columns.forEach((column) => {
+          const th = document.createElement("th");
+          th.textContent = column;
+          headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        rows.forEach((row) => {
+          const tr = document.createElement("tr");
+          columns.forEach((column) => {
+            const td = document.createElement("td");
+            const value = row[column];
+            td.textContent = value === null || value === undefined ? "" : String(value);
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        resultsBox.innerHTML = "";
+        resultsBox.appendChild(table);
+      }
+
+      async function runQuery() {
+        const question = questionInput.value.trim();
+        clearOutput();
+
+        if (!question) {
+          showError("Enter a question before running the query.");
+          return;
+        }
+
+        setLoading(true);
+
+        try {
+          const response = await fetch("/query", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            showError(data.detail || "Query failed.");
+            return;
+          }
+
+          sqlBox.textContent = data.sql;
+          rowCount.textContent = `${data.row_count} row${data.row_count === 1 ? "" : "s"}`;
+          sqlSection.hidden = false;
+          resultsSection.hidden = false;
+          renderTable(data.rows || []);
+        } catch (error) {
+          showError(error.message || "Request failed.");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      submitButton.addEventListener("click", runQuery);
+      questionInput.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          runQuery();
+        }
+      });
+
+      if (window.location.protocol === "file:") {
+        showError("Open this UI through the FastAPI server, for example http://127.0.0.1:8010/. Direct file access cannot call /query.");
+      }
+    </script>
+  </body>
+</html>

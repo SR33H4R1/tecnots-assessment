@@ -1,6 +1,6 @@
 # Natural Language PostgreSQL Query API
 
-FastAPI MVP that accepts natural language questions, introspects a live PostgreSQL schema at runtime, asks the NIA API to generate SQL, blocks unsafe SQL, executes safe read-only `SELECT` queries, and returns JSON results.
+FastAPI application that accepts natural language questions, introspects a live PostgreSQL schema at runtime, generates SQL using the NIA API, validates query safety, executes read-only SELECT queries, and returns JSON results.
 
 ## Demo
 

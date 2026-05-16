@@ -1,6 +1,7 @@
 import os
 from typing import Any
 
+from dotenv import load_dotenv
 from fastapi import HTTPException
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -9,19 +10,33 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.guards import validate_safe_select
 
 
+load_dotenv()
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
-def get_database_url() -> str:
-    if not DATABASE_URL:
-        raise HTTPException(status_code=500, detail="DATABASE_URL is not configured")
-    if DATABASE_URL.startswith("postgresql+asyncpg://"):
-        return DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+psycopg2://", 1)
-    return DATABASE_URL
+def normalize_database_url(database_url: str) -> str:
+    if database_url.startswith("postgresql+asyncpg://"):
+        return database_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://", 1)
+    return database_url
+
+
+engine: Engine | None = (
+    create_engine(
+        normalize_database_url(DATABASE_URL),
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+    )
+    if DATABASE_URL
+    else None
+)
 
 
 def get_engine() -> Engine:
-    return create_engine(get_database_url(), pool_pre_ping=True)
+    if engine is None:
+        raise HTTPException(status_code=500, detail="DATABASE_URL is not configured")
+    return engine
 
 
 def execute_select(engine: Engine, sql: str) -> list[dict[str, Any]]:

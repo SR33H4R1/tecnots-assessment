@@ -2,6 +2,8 @@
 
 FastAPI application that accepts natural language questions, introspects a live PostgreSQL schema at runtime, generates SQL using the NIA API, validates query safety, executes read-only SELECT queries, and returns JSON results.
 
+Database access uses a shared SQLAlchemy engine with connection pooling.
+
 ## Demo
 
 ![Demo UI](screenshots/demo.png)

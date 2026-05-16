@@ -10,26 +10,26 @@ FastAPI MVP that accepts natural language questions, introspects a live PostgreS
    - `NIA_API_KEY`
 3. Install dependencies:
 
-```powershell
-& "C:\Users\Sreehari\tecdots-assessment\.venv\Scripts\python.exe" -m pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
 ```
 
 ## Run
 
-```powershell
-& "C:\Users\Sreehari\tecdots-assessment\.venv\Scripts\python.exe" -m uvicorn main:app --host 127.0.0.1 --port 8010 --reload
+```bash
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Open the demo UI:
 
 ```text
-http://localhost:8010/
+http://localhost:8000/
 ```
 
 Open Swagger UI:
 
 ```text
-http://localhost:8010/docs
+http://localhost:8000/docs
 ```
 
 ## Endpoints

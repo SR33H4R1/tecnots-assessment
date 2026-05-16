@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 from pathlib import Path
 
@@ -16,6 +17,10 @@ from app.llm import generate_sql
 from app.schema import introspect_schema
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+MAX_QUESTION_LENGTH = 500
+
 app = FastAPI(
     title="Natural Language PostgreSQL Query API",
     description="Runtime PostgreSQL schema introspection with NIA-generated safe SELECT queries.",
@@ -30,13 +35,18 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 class QueryRequest(BaseModel):
-    question: str = Field(..., min_length=1, examples=["Show the first 10 customers"])
+    question: str = Field(..., min_length=1, max_length=MAX_QUESTION_LENGTH, examples=["Show the first 10 customers"])
 
 
 class QueryResponse(BaseModel):
     sql: str
     rows: list[dict[str, Any]]
     row_count: int
+
+
+@app.on_event("startup")
+def log_startup() -> None:
+    logger.info("Natural Language PostgreSQL Query API started")
 
 
 @app.get("/", include_in_schema=False)

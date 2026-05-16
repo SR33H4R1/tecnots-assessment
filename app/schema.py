@@ -1,9 +1,13 @@
+import logging
 from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
+
+
+logger = logging.getLogger(__name__)
 
 
 def introspect_schema(engine: Engine) -> list[dict[str, Any]]:
@@ -27,7 +31,8 @@ def introspect_schema(engine: Engine) -> list[dict[str, Any]]:
         with engine.connect() as connection:
             rows = connection.execute(schema_sql).mappings().all()
     except SQLAlchemyError as exc:
-        raise HTTPException(status_code=503, detail=f"Database schema introspection failed: {exc}") from exc
+        logger.exception("Database schema introspection failed")
+        raise HTTPException(status_code=503, detail="Database schema introspection failed") from exc
 
     for row in rows:
         key = (row["table_schema"], row["table_name"])

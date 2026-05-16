@@ -1,4 +1,5 @@
 import os
+import logging
 from typing import Any
 
 from dotenv import load_dotenv
@@ -12,7 +13,10 @@ from app.guards import validate_safe_select
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 DATABASE_URL = os.getenv("DATABASE_URL")
+MAX_ROWS = 500
 
 
 def normalize_database_url(database_url: str) -> str:
@@ -45,7 +49,10 @@ def execute_select(engine: Engine, sql: str) -> list[dict[str, Any]]:
         with engine.connect() as connection:
             with connection.begin():
                 connection.execute(text("SET TRANSACTION READ ONLY"))
+                connection.execute(text("SET LOCAL statement_timeout = '10s'"))
                 result = connection.execute(text(sql))
-                return [dict(row) for row in result.mappings().all()]
+                rows = result.mappings().fetchmany(MAX_ROWS + 1)
+                return [dict(row) for row in rows[:MAX_ROWS]]
     except SQLAlchemyError as exc:
-        raise HTTPException(status_code=503, detail=f"Database query execution failed: {exc}") from exc
+        logger.exception("Database query execution failed")
+        raise HTTPException(status_code=503, detail="Database query execution failed") from exc

@@ -2,7 +2,7 @@
 
 FastAPI application that accepts natural language questions, introspects a live PostgreSQL schema at runtime, generates SQL using the NIA API, validates query safety, executes read-only SELECT queries, and returns JSON results.
 
-Database access uses a shared SQLAlchemy engine with connection pooling.
+Database access uses a shared SQLAlchemy engine with connection pooling and lightweight production hardening for generated SQL execution.
 
 ## Demo
 
@@ -64,20 +64,28 @@ Response:
 }
 ```
 
-## Guardrails
+## Safety Features
 
-Only single-statement `SELECT` queries are allowed.
+The API keeps generated SQL execution read-only and bounded:
 
-Blocked keywords:
+- Executes queries inside a read-only transaction.
+- Allows only single-statement `SELECT` queries.
+- Blocks dangerous SQL keywords and selected PostgreSQL functions.
+- Applies a 10-second PostgreSQL `statement_timeout`.
+- Limits returned results to 500 rows.
+- Introspects the live PostgreSQL schema dynamically from `information_schema`.
 
-- `DROP`
-- `DELETE`
-- `UPDATE`
-- `INSERT`
-- `ALTER`
-- `TRUNCATE`
-- `CREATE`
-- `GRANT`
-- `REVOKE`
+## Production Hardening
 
-No table or column names are hardcoded. Schema is introspected on each request so database changes are picked up at runtime.
+The current implementation preserves the lightweight architecture while adding practical safeguards:
+
+- Pooled SQLAlchemy engine with stale-connection checks.
+- Bounded database query runtime through `statement_timeout`.
+- Bounded response size through row limiting.
+- LLM request timeout, response token limit, and generic upstream error handling.
+- Generic client-facing database errors with server-side logging.
+
+## Development Workflow
+
+- `master` is the stable assessment baseline.
+- `development` is the branch for ongoing improvements and hardening work.

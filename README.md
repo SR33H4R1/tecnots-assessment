@@ -70,7 +70,7 @@ The API keeps generated SQL execution read-only and bounded:
 
 - Executes queries inside a read-only transaction.
 - Allows only single-statement `SELECT` queries.
-- Blocks dangerous SQL keywords and selected PostgreSQL functions.
+- Blocks dangerous SQL keywords and PostgreSQL functions.
 - Applies a 10-second PostgreSQL `statement_timeout`.
 - Limits returned results to 500 rows.
 - Introspects the live PostgreSQL schema dynamically from `information_schema`.
@@ -87,5 +87,5 @@ The current implementation preserves the lightweight architecture while adding p
 
 ## Development Workflow
 
-- `master` is the stable assessment baseline.
+- `master` is the stable branch.
 - `development` is the branch for ongoing improvements and hardening work.

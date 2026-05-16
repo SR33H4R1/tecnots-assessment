@@ -2,6 +2,10 @@
 
 FastAPI MVP that accepts natural language questions, introspects a live PostgreSQL schema at runtime, asks the NIA API to generate SQL, blocks unsafe SQL, executes safe read-only `SELECT` queries, and returns JSON results.
 
+## Demo
+
+![Demo UI](screenshots/demo.png)
+
 ## Setup
 
 1. Create `.env` from `.env.example`.
